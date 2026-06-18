@@ -553,6 +553,7 @@ document.querySelectorAll('#langPicker .time-opt').forEach(btn => {
     document.querySelectorAll('#langPicker .time-opt').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     switchLanguage(btn.dataset.lang);
+    localStorage.setItem('verb-roulette-lang', btn.dataset.lang);
   });
 });
 
@@ -573,6 +574,7 @@ document.querySelectorAll('#timePicker .time-opt').forEach(btn => {
     document.querySelectorAll('#timePicker .time-opt').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedTime = parseInt(btn.dataset.val);
+    localStorage.setItem('verb-roulette-time', btn.dataset.val);
   });
 });
 
@@ -604,7 +606,7 @@ function renderVerbList() {
   const pastHead = _vlIs3sg ? `${past}*` : past;
 
   $('verbListSearch').value = '';
-  $('verbListTitle').textContent = `${LANG_CONFIG.name} — ${_vlSorted.length} verbs`;
+  $('verbListTitle').textContent = `${_vlSorted.length} ${LANG_CONFIG.verbsLabel}`;
   $('verbListTable').innerHTML = `
     <thead><tr>
       <th scope="col">${inf}</th><th scope="col">${pastHead}</th><th scope="col">${pp}</th>
@@ -626,8 +628,8 @@ function filterVerbList(query) {
       )
     : _vlSorted;
   $('verbListTitle').textContent = q
-    ? `${LANG_CONFIG.name} — ${hits.length} / ${_vlSorted.length}`
-    : `${LANG_CONFIG.name} — ${_vlSorted.length} verbs`;
+    ? `${hits.length} / ${_vlSorted.length} ${LANG_CONFIG.verbsLabel}`
+    : `${_vlSorted.length} ${LANG_CONFIG.verbsLabel}`;
   $('verbListTable').querySelector('tbody').innerHTML = _vlRows(hits);
   if (q) announce(`${hits.length} of ${_vlSorted.length} verbs shown`);
 }
@@ -735,6 +737,27 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Init ─────────────────────────────────────────────────────
+(function restoreSettings() {
+  const savedLang = localStorage.getItem('verb-roulette-lang');
+  if (savedLang && LANGUAGES[savedLang]) {
+    currentLang = savedLang;
+    ALL_VERBS   = LANGUAGES[savedLang].verbs;
+    LANG_CONFIG = LANGUAGES[savedLang].config;
+    document.querySelectorAll('#langPicker .time-opt').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === savedLang);
+    });
+  }
+
+  const savedTime = localStorage.getItem('verb-roulette-time');
+  if (savedTime !== null) {
+    const t = parseInt(savedTime);
+    selectedTime = t;
+    document.querySelectorAll('#timePicker .time-opt').forEach(b => {
+      b.classList.toggle('active', b.dataset.val === savedTime);
+    });
+  }
+})();
+
 updateLabels();
 renderTheory();
 pickWheelVerbs();

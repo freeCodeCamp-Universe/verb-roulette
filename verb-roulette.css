@@ -295,6 +295,7 @@ h1 {
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .time-opt:last-child { border-right: none; }
@@ -879,9 +880,33 @@ kbd {
   white-space: nowrap;
 }
 
+/* ── MOBILE LAYOUT REORDER ── */
+@media (max-width: 799px) {
+  /* flatten both wrappers so every piece is a direct body-flex child */
+  .two-col      { display: contents; }
+  .col-controls { display: contents; }
+  /* body gap replaces the gap lost from the two flattened wrappers */
+  body          { gap: 1.25rem; }
+  /* clear margins that would double-up with the new body gap */
+  h1            { margin-bottom: 0; }
+  .subtitle     { margin-bottom: 0; }
+  .stats                           { order: 1; }
+  .col-wheel                       { order: 2; }
+  .btn-spin                        { order: 3; }
+  .btn-group                       { order: 4; }
+  .col-controls > .picker-fieldset { order: 5; }
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 480px) {
   .theme-toggle, .btn-sound, .btn-shortcuts { width: 40px; height: 40px; font-size: 0.95rem; }
+  /* keyboard shortcuts aren't useful on touch devices */
+  .btn-shortcuts { display: none; }
+  /* re-gap the two remaining buttons for their wider 40px size */
+  .theme-toggle { right: 8px; }
+  .btn-sound    { right: 56px; }
+  /* push h1 below the fixed button row (buttons end at top 52px) */
+  h1 { margin-top: 44px; }
 }
 
 @media (max-width: 560px) {
@@ -926,6 +951,9 @@ kbd {
 
   /* Verb list */
   .verblist-box { height: 88vh; }
+
+  /* Prevent iOS Safari auto-zoom on search input focus (requires ≥16px) */
+  .verblist-search input { font-size: 1rem; }
 }
 
 @media (max-width: 380px) {

@@ -2,6 +2,7 @@ const VERBS_FR = {
   config: {
     code: 'fr',
     name: 'Français',
+    verbsLabel: 'verbes en français',
     labels: { inf: 'Infinitif', past: 'Présent (il)', pp: 'Participe passé' },
     pastHint: 'il …',
     theory: [

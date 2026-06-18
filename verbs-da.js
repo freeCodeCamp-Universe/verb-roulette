@@ -2,6 +2,7 @@ const VERBS_DA = {
   config: {
     code: 'da',
     name: 'Dansk',
+    verbsLabel: 'verber på dansk',
     labels: { inf: 'Infinitiv', past: 'Datid', pp: 'Participium' },
     theory: [
       {

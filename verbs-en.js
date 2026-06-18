@@ -2,6 +2,7 @@ const VERBS_EN = {
   config: {
     code: 'en',
     name: 'English',
+    verbsLabel: 'verbs in English',
     labels: { inf: 'Infinitive', past: 'Past Simple', pp: 'Past Participle' },
     theory: [
       {

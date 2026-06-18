@@ -2,6 +2,7 @@ const VERBS_IT = {
   config: {
     code: 'it',
     name: 'Italiano',
+    verbsLabel: 'verbi in italiano',
     labels: { inf: 'Infinito', past: 'Passato remoto (lui)', pp: 'Participio passato' },
     pastHint: 'lui …',
     theory: [

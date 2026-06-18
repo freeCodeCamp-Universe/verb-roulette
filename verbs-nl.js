@@ -2,6 +2,7 @@ const VERBS_NL = {
   config: {
     code: 'nl',
     name: 'Nederlands',
+    verbsLabel: 'werkwoorden in het Nederlands',
     labels: { inf: 'Infinitief', past: 'Verleden Tijd', pp: 'Voltooid Deelwoord' },
     theory: [
       {

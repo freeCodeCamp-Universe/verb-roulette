@@ -2,6 +2,7 @@ const VERBS_ES = {
   config: {
     code: 'es',
     name: 'Español',
+    verbsLabel: 'verbos en español',
     labels: { inf: 'Infinitivo', past: 'Pretérito (él)', pp: 'Participio' },
     pastHint: 'él …',
     theory: [

@@ -2,6 +2,7 @@ const VERBS_IS = {
   config: {
     code: 'is',
     name: 'Íslenska',
+    verbsLabel: 'sagnorð á íslensku',
     labels: { inf: 'Nafnháttur', past: 'Þátíð', pp: 'Lýsingarháttur' },
     theory: [
       {

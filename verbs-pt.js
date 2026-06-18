@@ -2,6 +2,7 @@ const VERBS_PT = {
   config: {
     code: 'pt',
     name: 'Português',
+    verbsLabel: 'verbos em português',
     labels: { inf: 'Infinitivo', past: 'Passado simples (ele)', pp: 'Particípio passado' },
     pastHint: 'ele …',
     theory: [

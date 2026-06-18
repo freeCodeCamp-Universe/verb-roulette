@@ -2,6 +2,7 @@ const VERBS_NO = {
   config: {
     code: 'no',
     name: 'Norsk',
+    verbsLabel: 'verb på norsk',
     labels: { inf: 'Infinitiv', past: 'Preteritum', pp: 'Perfektum partisipp' },
     theory: [
       {

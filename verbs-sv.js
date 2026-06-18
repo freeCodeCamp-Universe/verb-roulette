@@ -2,6 +2,7 @@ const VERBS_SV = {
   config: {
     code: 'sv',
     name: 'Svenska',
+    verbsLabel: 'verb på svenska',
     labels: { inf: 'Infinitiv', past: 'Preteritum', pp: 'Supinum' },
     theory: [
       {

@@ -2,6 +2,7 @@ const VERBS_DE = {
   config: {
     code: 'de',
     name: 'Deutsch',
+    verbsLabel: 'Verben auf Deutsch',
     labels: { inf: 'Infinitiv', past: 'Präteritum', pp: 'Partizip II' },
     theory: [
       {
