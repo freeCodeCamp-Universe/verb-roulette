@@ -13,12 +13,32 @@ function pickWheelVerbs() {
 }
 
 let selectedTime = 10;
-const COLORS_EVEN = '#1b1b32';
-const COLORS_ODD  = '#2a2a40';
-const TEXT_EVEN   = '#99c9ff';
-const TEXT_ODD    = '#dfdfe2';
+
+function getWheelColors() {
+  const light = document.documentElement.dataset.theme === 'light';
+  return {
+    even:      light ? '#eaeaef' : '#1b1b32',
+    odd:       light ? '#f5f6f7' : '#2a2a40',
+    textEven:  light ? '#002ead' : '#99c9ff',
+    textOdd:   light ? '#2a2a40' : '#dfdfe2',
+    stroke:    '#767688',
+    hubFill:   light ? '#ffffff' : '#0a0a23',
+    hubStroke: '#767688',
+  };
+}
 
 // ── Sound engine ─────────────────────────────────────────────
+let sfxEnabled = true;
+
+function setSfx(val) {
+  sfxEnabled = val;
+  localStorage.setItem('verb-roulette-sfx', val ? '1' : '0');
+  const btn = document.getElementById('soundToggle');
+  if (!btn) return;
+  btn.setAttribute('data-sfx', val ? 'on' : 'off');
+  btn.setAttribute('aria-label', val ? 'Sound on' : 'Sound off');
+}
+
 let _actx = null;
 function ac() {
   if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -28,6 +48,7 @@ function ac() {
 
 const SFX = {
   spinTicks() {
+    if (!sfxEnabled) return;
     const c = ac(); let t = 0, gap = 0.04;
     while (t < 3.8) {
       const at = c.currentTime + t;
@@ -41,6 +62,7 @@ const SFX = {
     }
   },
   land() {
+    if (!sfxEnabled) return;
     const c = ac(), o = c.createOscillator(), g = c.createGain();
     o.type = 'sine';
     o.frequency.setValueAtTime(220, c.currentTime);
@@ -51,6 +73,7 @@ const SFX = {
     o.start(); o.stop(c.currentTime + 0.25);
   },
   reveal() {
+    if (!sfxEnabled) return;
     const c = ac(), o = c.createOscillator(), g = c.createGain();
     o.type = 'sine';
     o.frequency.setValueAtTime(660, c.currentTime);
@@ -61,6 +84,7 @@ const SFX = {
     o.start(); o.stop(c.currentTime + 0.55);
   },
   perfect() {
+    if (!sfxEnabled) return;
     const c = ac();
     [523, 659, 784].forEach((freq, i) => {
       const o = c.createOscillator(), g = c.createGain();
@@ -73,6 +97,7 @@ const SFX = {
     });
   },
   streak() {
+    if (!sfxEnabled) return;
     const c = ac();
     [784, 988, 1047, 1319].forEach((freq, i) => {
       const o = c.createOscillator(), g = c.createGain();
@@ -85,6 +110,7 @@ const SFX = {
     });
   },
   correct() {
+    if (!sfxEnabled) return;
     const c = ac();
     [523, 659].forEach((freq, i) => {
       const o = c.createOscillator(), g = c.createGain();
@@ -97,6 +123,7 @@ const SFX = {
     });
   },
   wrong() {
+    if (!sfxEnabled) return;
     const c = ac(), o = c.createOscillator(), g = c.createGain();
     o.type = 'sawtooth';
     o.frequency.setValueAtTime(280, c.currentTime);
@@ -107,6 +134,7 @@ const SFX = {
     o.start(); o.stop(c.currentTime + 0.4);
   },
   timeup() {
+    if (!sfxEnabled) return;
     const c = ac();
     [440, 330, 220].forEach((freq, i) => {
       const o = c.createOscillator(), g = c.createGain();
@@ -119,6 +147,7 @@ const SFX = {
     });
   },
   tick() {
+    if (!sfxEnabled) return;
     const c = ac(), o = c.createOscillator(), g = c.createGain();
     o.type = 'sine'; o.frequency.value = 1000;
     g.gain.setValueAtTime(0.08, c.currentTime);
@@ -164,10 +193,11 @@ function buildWheel() {
     const end   = start + slice;
     const mid   = start + slice / 2;
 
+    const c = getWheelColors();
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', sectorPath(cx, cy, r, start, end));
-    path.setAttribute('fill',         i % 2 === 0 ? COLORS_EVEN : COLORS_ODD);
-    path.setAttribute('stroke',       '#3b3b4f');
+    path.setAttribute('fill',         i % 2 === 0 ? c.even : c.odd);
+    path.setAttribute('stroke',       c.stroke);
     path.setAttribute('stroke-width', '1.5');
     g.appendChild(path);
 
@@ -180,7 +210,7 @@ function buildWheel() {
     txt.setAttribute('y', ty);
     txt.setAttribute('text-anchor',       'middle');
     txt.setAttribute('dominant-baseline', 'middle');
-    txt.setAttribute('fill',              i % 2 === 0 ? TEXT_EVEN : TEXT_ODD);
+    txt.setAttribute('fill',              i % 2 === 0 ? c.textEven : c.textOdd);
     txt.setAttribute('font-size',         '10.5');
     txt.setAttribute('font-family',       "'Fira Mono', monospace");
     txt.setAttribute('font-weight',       'bold');
@@ -191,19 +221,20 @@ function buildWheel() {
     g.appendChild(txt);
   });
 
+  const wc = getWheelColors();
   const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   ring.setAttribute('cx', cx); ring.setAttribute('cy', cy);
   ring.setAttribute('r',  r);
   ring.setAttribute('fill', 'none');
-  ring.setAttribute('stroke', '#3b3b4f');
+  ring.setAttribute('stroke', wc.stroke);
   ring.setAttribute('stroke-width', '2');
   g.appendChild(ring);
 
   const hub = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   hub.setAttribute('cx', cx); hub.setAttribute('cy', cy);
   hub.setAttribute('r', 14);
-  hub.setAttribute('fill',         '#0a0a23');
-  hub.setAttribute('stroke',       '#858591');
+  hub.setAttribute('fill',         wc.hubFill);
+  hub.setAttribute('stroke',       wc.hubStroke);
   hub.setAttribute('stroke-width', '1.5');
   g.appendChild(hub);
 }
@@ -315,6 +346,9 @@ function checkAnswer(timeUp = false) {
   $('inf-input').className  = 'verb-input correct';
   $('past-input').className = 'verb-input ' + (pastOk ? 'correct' : 'wrong');
   $('pp-input').className   = 'verb-input ' + (ppOk   ? 'correct' : 'wrong');
+  $('inf-input').setAttribute('aria-invalid',  'false');
+  $('past-input').setAttribute('aria-invalid', pastOk ? 'false' : 'true');
+  $('pp-input').setAttribute('aria-invalid',   ppOk   ? 'false' : 'true');
 
 
   $('ans-inf').textContent   = currentVerb.inf;
@@ -378,6 +412,7 @@ function clearInputs() {
     el.value     = '';
     el.readOnly  = false;
     el.className = 'verb-input';
+    el.removeAttribute('aria-invalid');
   });
 }
 
@@ -513,6 +548,41 @@ $('theoryClose').addEventListener('click', closeTheory);
 $('theory-modal').addEventListener('click', e => {
   if (e.target === $('theory-modal')) closeTheory();
 });
+
+// ── Theme toggle ─────────────────────────────────────────────
+(function () {
+  const btn = document.getElementById('themeToggle');
+
+  function applyTheme(light) {
+    if (light) {
+      document.documentElement.dataset.theme = 'light';
+      btn.textContent = '🌙';
+      btn.setAttribute('aria-label', 'Switch to dark theme');
+    } else {
+      delete document.documentElement.dataset.theme;
+      btn.textContent = '☀️';
+      btn.setAttribute('aria-label', 'Switch to light theme');
+    }
+    localStorage.setItem('verb-roulette-theme', light ? 'light' : 'dark');
+    buildWheel();
+  }
+
+  if (document.documentElement.dataset.theme === 'light') {
+    btn.textContent = '🌙';
+    btn.setAttribute('aria-label', 'Switch to dark theme');
+  }
+
+  btn.addEventListener('click', () => {
+    applyTheme(document.documentElement.dataset.theme !== 'light');
+  });
+})();
+
+// ── Sound toggle init ─────────────────────────────────────────
+document.getElementById('soundToggle').addEventListener('click', () => setSfx(!sfxEnabled));
+(function () {
+  const saved = localStorage.getItem('verb-roulette-sfx');
+  if (saved !== null) setSfx(saved === '1');
+})();
 
 // ── Init ─────────────────────────────────────────────────────
 updateLabels();
