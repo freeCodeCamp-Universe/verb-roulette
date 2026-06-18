@@ -157,6 +157,56 @@ const SFX = {
   },
 };
 
+// ── Accessibility helpers ─────────────────────────────────────
+function getFocusable(el) {
+  return [...el.querySelectorAll(
+    'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
+  )];
+}
+
+function announce(msg) {
+  const el = document.getElementById('sr-announce');
+  if (!el) return;
+  el.textContent = '';
+  requestAnimationFrame(() => { el.textContent = msg; });
+}
+
+function modalKeyHandler(e) {
+  const modal = e.currentTarget;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (modal._onClose) modal._onClose();
+    return;
+  }
+  if (e.key === 'Tab') {
+    const focusable = getFocusable(modal);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault(); first.focus();
+    }
+  }
+}
+
+function modalOpen(modal, trigger, onClose, firstFocusEl) {
+  modal._trigger = trigger;
+  modal._onClose = onClose;
+  modal.addEventListener('keydown', modalKeyHandler);
+  const toFocus = firstFocusEl || getFocusable(modal)[0];
+  if (toFocus) toFocus.focus();
+}
+
+function modalDone(modal) {
+  modal.removeEventListener('keydown', modalKeyHandler);
+  const trigger = modal._trigger;
+  modal._trigger = null;
+  modal._onClose = null;
+  if (trigger) trigger.focus();
+}
+
 // ── State ────────────────────────────────────────────────────
 let state           = 'idle';
 let currentVerb     = null;
@@ -258,17 +308,26 @@ function spin() {
   currentRotation  += 5 * 360 + diff;
 
   const g = $('wheel-group');
-  g.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
-  g.style.transform  = `rotate(${currentRotation}deg)`;
-  SFX.spinTicks();
-  setTimeout(() => SFX.land(), 4050);
-  setTimeout(showReveal, 4100);
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) {
+    g.style.transition = 'none';
+    g.style.transform  = `rotate(${currentRotation}deg)`;
+    SFX.land();
+    setTimeout(showReveal, 100);
+  } else {
+    g.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+    g.style.transform  = `rotate(${currentRotation}deg)`;
+    SFX.spinTicks();
+    setTimeout(() => SFX.land(), 4050);
+    setTimeout(showReveal, 4100);
+  }
 }
 
 // ── Reveal ───────────────────────────────────────────────────
 function showReveal() {
   const panel = $('challenge');
   panel.classList.add('visible');
+  modalOpen(panel, $('spinBtn'), resetToIdle, $('challengeClose'));
 
   $('verb-translation').textContent = (currentLang !== 'en' && currentVerb.tr) ? currentVerb.tr : '';
 
@@ -349,6 +408,8 @@ function checkAnswer(timeUp = false) {
   $('inf-input').setAttribute('aria-invalid',  'false');
   $('past-input').setAttribute('aria-invalid', pastOk ? 'false' : 'true');
   $('pp-input').setAttribute('aria-invalid',   ppOk   ? 'false' : 'true');
+  $('past-error').textContent = pastOk ? '' : `Correct: ${currentVerb.past}`;
+  $('pp-error').textContent   = ppOk   ? '' : `Correct: ${currentVerb.pp}`;
 
 
   $('ans-inf').textContent   = currentVerb.inf;
@@ -388,8 +449,20 @@ function checkAnswer(timeUp = false) {
     popup.textContent = timeUp ? 'Time up — 0 pts' : '0 pts';
   }
 
+  ['inf-input', 'past-input', 'pp-input'].forEach(id => $(id).readOnly = true);
+
   $('checkBtn').style.display = 'none';
   $('nextBtn').style.display  = 'block';
+  $('nextBtn').focus();
+
+  const msg = timeUp
+    ? `Time up. Score: ${totalScore}.`
+    : allOk
+      ? `Correct! +${roundTotal} points.${streak > 1 ? ` ${streak} streak!` : ''}`
+      : correct > 0
+        ? `${correct} of 3 correct. +${roundTotal} points.`
+        : 'Wrong. 0 points.';
+  announce(msg);
 }
 
 // ── Reset ─────────────────────────────────────────────────────
@@ -399,6 +472,7 @@ function resetToIdle() {
   state = 'idle';
   $('spinBtn').disabled = false;
   $('challenge').classList.remove('visible');
+  modalDone($('challenge'));
   $('checkBtn').style.display = 'block';
   $('nextBtn').style.display  = 'none';
   pickWheelVerbs();
@@ -414,6 +488,8 @@ function clearInputs() {
     el.className = 'verb-input';
     el.removeAttribute('aria-invalid');
   });
+  $('past-error').textContent = '';
+  $('pp-error').textContent   = '';
 }
 
 function setInputsVisible(show) {
@@ -531,8 +607,8 @@ function renderVerbList() {
   $('verbListTitle').textContent = `${LANG_CONFIG.name} — ${_vlSorted.length} verbs`;
   $('verbListTable').innerHTML = `
     <thead><tr>
-      <th>${inf}</th><th>${pastHead}</th><th>${pp}</th>
-      ${_vlShowTr ? '<th>Translation</th>' : ''}
+      <th scope="col">${inf}</th><th scope="col">${pastHead}</th><th scope="col">${pp}</th>
+      ${_vlShowTr ? '<th scope="col">Translation</th>' : ''}
     </tr></thead>
     <tbody>${_vlRows(_vlSorted)}</tbody>
   `;
@@ -553,14 +629,28 @@ function filterVerbList(query) {
     ? `${LANG_CONFIG.name} — ${hits.length} / ${_vlSorted.length}`
     : `${LANG_CONFIG.name} — ${_vlSorted.length} verbs`;
   $('verbListTable').querySelector('tbody').innerHTML = _vlRows(hits);
+  if (q) announce(`${hits.length} of ${_vlSorted.length} verbs shown`);
 }
 
-function openVerbList()  { renderVerbList(); $('verblist-modal').classList.add('visible'); }
-function closeVerbList() { $('verblist-modal').classList.remove('visible'); }
+function openVerbList() {
+  renderVerbList();
+  $('verblist-modal').classList.add('visible');
+  modalOpen($('verblist-modal'), $('verbListBtn'), closeVerbList, $('verbListSearch'));
+}
+function closeVerbList() {
+  $('verblist-modal').classList.remove('visible');
+  modalDone($('verblist-modal'));
+}
 
 // ── Theory modal ─────────────────────────────────────────────
-function openTheory()  { $('theory-modal').classList.add('visible'); }
-function closeTheory() { $('theory-modal').classList.remove('visible'); }
+function openTheory() {
+  $('theory-modal').classList.add('visible');
+  modalOpen($('theory-modal'), $('theoryBtn'), closeTheory);
+}
+function closeTheory() {
+  $('theory-modal').classList.remove('visible');
+  modalDone($('theory-modal'));
+}
 
 $('verbListBtn').addEventListener('click', openVerbList);
 $('verbListClose').addEventListener('click', closeVerbList);
@@ -609,6 +699,40 @@ document.getElementById('soundToggle').addEventListener('click', () => setSfx(!s
   const saved = localStorage.getItem('verb-roulette-sfx');
   if (saved !== null) setSfx(saved === '1');
 })();
+
+// ── Keyboard shortcuts ────────────────────────────────────────
+function openShortcuts() {
+  $('shortcuts-modal').classList.add('visible');
+  modalOpen($('shortcuts-modal'), $('shortcutsToggle'), closeShortcuts);
+}
+function closeShortcuts() {
+  $('shortcuts-modal').classList.remove('visible');
+  modalDone($('shortcuts-modal'));
+}
+
+$('shortcutsToggle').addEventListener('click', () => {
+  $('shortcuts-modal').classList.contains('visible') ? closeShortcuts() : openShortcuts();
+});
+$('shortcutsClose').addEventListener('click', closeShortcuts);
+$('shortcuts-modal').addEventListener('click', e => {
+  if (e.target === $('shortcuts-modal')) closeShortcuts();
+});
+
+document.addEventListener('keydown', e => {
+  const inInput = e.target.matches('input, textarea, [contenteditable]');
+
+  if ($('verblist-modal').classList.contains('visible') ||
+      $('theory-modal').classList.contains('visible') ||
+      $('shortcuts-modal').classList.contains('visible')) return;
+
+  if (e.key === ' ' && !inInput) {
+    e.preventDefault();
+    if      (state === 'idle')   spin();
+    else if (state === 'result') resetToIdle();
+    return;
+  }
+
+});
 
 // ── Init ─────────────────────────────────────────────────────
 updateLabels();
