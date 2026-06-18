@@ -213,6 +213,8 @@ let currentVerb     = null;
 let totalScore      = 0;
 let streak          = 0;
 let personalBest    = 0;
+let missedVerbs     = new Map(); // inf → verb object
+let retryMode       = false;
 let round           = 0;
 let timeLeft        = 0;
 let timerInterval   = null;
@@ -425,8 +427,9 @@ function checkAnswer(timeUp = false) {
   const speed    = allOk && !timeUp && selectedTime > 0 ? timeLeft * 20 : 0;
   const pts      = correct * 100 + (allOk ? 100 : 0) + speed;
 
-  if (allOk) streak++;
-  else       streak = 0;
+  if (allOk) { streak++; missedVerbs.delete(currentVerb.inf); }
+  else       { streak = 0; missedVerbs.set(currentVerb.inf, currentVerb); }
+  updateRetryBtn();
 
   const streakBonus = allOk && streak > 1 ? (streak - 1) * 50 : 0;
   const roundTotal  = pts + streakBonus;
@@ -482,8 +485,16 @@ function resetToIdle() {
   modalDone($('challenge'));
   $('checkBtn').style.display = 'block';
   $('nextBtn').style.display  = 'none';
-  pickWheelVerbs();
-  buildWheel();
+  if (retryMode && missedVerbs.size === 0) {
+    announce('All mistakes cleared!');
+    exitRetryMode();
+  } else if (retryMode) {
+    wheelVerbs = [...missedVerbs.values()];
+    buildWheel();
+  } else {
+    pickWheelVerbs();
+    buildWheel();
+  }
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -527,6 +538,43 @@ function renderTheory() {
   `).join('');
 }
 
+function updateRetryBtn() {
+  const btn = $('retryBtn');
+  if (retryMode) {
+    btn.textContent = missedVerbs.size
+      ? `Exit Retry (${missedVerbs.size} left)`
+      : 'Exit Retry';
+    btn.classList.add('active');
+    btn.style.display = '';
+  } else if (round >= 5 && missedVerbs.size > 0) {
+    btn.textContent = `Retry Mistakes (${missedVerbs.size})`;
+    btn.classList.remove('active');
+    btn.style.display = '';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function enterRetryMode() {
+  retryMode  = true;
+  wheelVerbs = [...missedVerbs.values()];
+  currentRotation = 0;
+  $('wheel-group').style.transition = 'none';
+  $('wheel-group').style.transform  = 'rotate(0deg)';
+  buildWheel();
+  updateRetryBtn();
+}
+
+function exitRetryMode() {
+  retryMode = false;
+  pickWheelVerbs();
+  currentRotation = 0;
+  $('wheel-group').style.transition = 'none';
+  $('wheel-group').style.transform  = 'rotate(0deg)';
+  buildWheel();
+  updateRetryBtn();
+}
+
 function loadBest(code) {
   personalBest = parseInt(localStorage.getItem(`verb-roulette-best-${code}`) || '0');
   $('sBest').textContent = personalBest || '0';
@@ -547,7 +595,10 @@ function switchLanguage(code) {
 
   state = 'idle';
   totalScore = streak = round = 0;
+  missedVerbs.clear();
+  retryMode = false;
   $('sScore').textContent = $('sRound').textContent = '0';
+  $('retryBtn').style.display = 'none';
   loadBest(code);
   $('spinBtn').disabled   = false;
   $('checkBtn').style.display = 'block';
@@ -593,6 +644,10 @@ document.querySelectorAll('#timePicker .time-opt').forEach(btn => {
 
 // ── Events ───────────────────────────────────────────────────
 $('spinBtn').addEventListener('click', spin);
+$('retryBtn').addEventListener('click', () => {
+  if (state !== 'idle') return;
+  retryMode ? exitRetryMode() : enterRetryMode();
+});
 $('checkBtn').addEventListener('click', () => checkAnswer());
 $('nextBtn').addEventListener('click', resetToIdle);
 $('challengeClose').addEventListener('click', resetToIdle);

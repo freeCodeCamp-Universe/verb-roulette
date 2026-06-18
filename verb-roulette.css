@@ -275,6 +275,26 @@ h1 {
 .btn-spin:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .btn-spin:focus  { outline: 2px solid var(--focus); outline-offset: 2px; }
 
+/* ── RETRY BUTTON ── */
+.btn-retry {
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  padding: 0.32rem 1rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-family: 'Fira Mono', 'Menlo', 'Consolas', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.btn-retry.active { background: var(--gold); color: var(--gray-90); }
+.btn-retry:hover  { opacity: 0.8; }
+.btn-retry:focus  { outline: 2px solid var(--focus); outline-offset: 2px; }
+
 /* ── TIME PICKER ── */
 .time-picker {
   display: flex;
@@ -893,6 +913,7 @@ kbd {
   .stats                           { order: 1; }
   .col-wheel                       { order: 2; }
   .btn-spin                        { order: 3; }
+  .btn-retry                       { order: 3; }   /* immediately after spin (DOM order breaks tie) */
   .btn-group                       { order: 4; }
   .col-controls > .picker-fieldset { order: 5; }
 }
