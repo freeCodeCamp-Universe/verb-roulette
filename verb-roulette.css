@@ -118,7 +118,6 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 0.5rem 1.5rem;
-  margin-bottom: 1.2rem;
 }
 
 .stat { text-align: center; }
@@ -139,19 +138,53 @@ h1 {
   margin-top: 3px;
 }
 
-/* ── WHEEL AREA ── */
-.wheel-area {
+/* ── TWO-COLUMN LAYOUT ── */
+.two-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  margin-bottom: 1.1rem;
+}
+
+.col-wheel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.col-controls {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.1rem;
+  width: 100%;
+}
+
+@media (min-width: 800px) {
+  .two-col {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+  }
+  .col-wheel  { flex-shrink: 0; }
+  .col-controls { align-items: center; width: auto; }
+  .col-controls .stats { margin-bottom: 0; }
 }
 
 .wheel-wrapper {
   position: relative;
   width: min(300px, calc(100vw - 2rem));
   height: min(300px, calc(100vw - 2rem));
+}
+
+@media (min-width: 800px) {
+  .wheel-wrapper {
+    width: 420px;
+    height: 420px;
+  }
 }
 
 .pointer {
@@ -165,7 +198,6 @@ h1 {
   border-right: 11px solid transparent;
   border-top: 22px solid var(--gold);
   z-index: 10;
-  filter: drop-shadow(0 2px 6px rgba(255, 191, 0, 0.6));
 }
 
 #wheel-svg {
@@ -671,9 +703,28 @@ h1 {
 
 .verblist-box {
   max-width: 640px;
-  max-height: 82vh;
+  height: 82vh;
   overflow: hidden;
 }
+
+.verblist-search {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.verblist-search input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'Fira Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.6rem;
+}
+
+.verblist-search input::placeholder { color: var(--muted); }
+.verblist-search input:focus { outline: 2px solid var(--focus); outline-offset: -2px; border-color: var(--focus); }
 
 .verblist-scroll {
   overflow-y: auto;
@@ -776,7 +827,7 @@ h1 {
   .theory-box  { padding: 1.1rem 1rem 1.2rem; }
 
   /* Verb list */
-  .verblist-box { max-height: 88vh; }
+  .verblist-box { height: 88vh; }
 }
 
 @media (max-width: 380px) {

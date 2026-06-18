@@ -509,25 +509,50 @@ $('challengeClose').addEventListener('click', resetToIdle);
 // ── Verb list modal ───────────────────────────────────────────
 const ROMANCE_LANGS = new Set(['fr', 'es', 'it', 'pt']);
 
-function renderVerbList() {
-  const sorted = [...ALL_VERBS].sort((a, b) => a.inf.localeCompare(b.inf));
-  const { inf, past, pp } = LANG_CONFIG.labels;
-  const showTr   = currentLang !== 'en';
-  const is3sg    = ROMANCE_LANGS.has(currentLang);
-  const pastHead = is3sg ? `${past}*` : past;
+let _vlSorted = [];
+let _vlShowTr = false;
+let _vlIs3sg  = false;
 
-  $('verbListTitle').textContent = `${LANG_CONFIG.name} — ${sorted.length} verbs`;
+function _vlRows(verbs) {
+  return verbs.map(v => `<tr>
+    <td>${v.inf}</td><td>${v.past}</td><td>${v.pp}</td>
+    ${_vlShowTr ? `<td class="vl-tr">${v.tr || ''}</td>` : ''}
+  </tr>`).join('');
+}
+
+function renderVerbList() {
+  _vlSorted = [...ALL_VERBS].sort((a, b) => a.inf.localeCompare(b.inf));
+  const { inf, past, pp } = LANG_CONFIG.labels;
+  _vlShowTr = currentLang !== 'en';
+  _vlIs3sg  = ROMANCE_LANGS.has(currentLang);
+  const pastHead = _vlIs3sg ? `${past}*` : past;
+
+  $('verbListSearch').value = '';
+  $('verbListTitle').textContent = `${LANG_CONFIG.name} — ${_vlSorted.length} verbs`;
   $('verbListTable').innerHTML = `
     <thead><tr>
       <th>${inf}</th><th>${pastHead}</th><th>${pp}</th>
-      ${showTr ? '<th>Translation</th>' : ''}
+      ${_vlShowTr ? '<th>Translation</th>' : ''}
     </tr></thead>
-    <tbody>${sorted.map(v => `<tr>
-      <td>${v.inf}</td><td>${v.past}</td><td>${v.pp}</td>
-      ${showTr ? `<td class="vl-tr">${v.tr || ''}</td>` : ''}
-    </tr>`).join('')}</tbody>
+    <tbody>${_vlRows(_vlSorted)}</tbody>
   `;
-  $('verbListFootnote').textContent = is3sg ? '* 3rd person singular (he/she)' : '';
+  $('verbListFootnote').textContent = _vlIs3sg ? '* 3rd person singular (he/she)' : '';
+}
+
+function filterVerbList(query) {
+  const q = query.trim().toLowerCase();
+  const hits = q
+    ? _vlSorted.filter(v =>
+        v.inf.toLowerCase().includes(q) ||
+        v.past.toLowerCase().includes(q) ||
+        v.pp.toLowerCase().includes(q) ||
+        (_vlShowTr && (v.tr || '').toLowerCase().includes(q))
+      )
+    : _vlSorted;
+  $('verbListTitle').textContent = q
+    ? `${LANG_CONFIG.name} — ${hits.length} / ${_vlSorted.length}`
+    : `${LANG_CONFIG.name} — ${_vlSorted.length} verbs`;
+  $('verbListTable').querySelector('tbody').innerHTML = _vlRows(hits);
 }
 
 function openVerbList()  { renderVerbList(); $('verblist-modal').classList.add('visible'); }
@@ -539,6 +564,7 @@ function closeTheory() { $('theory-modal').classList.remove('visible'); }
 
 $('verbListBtn').addEventListener('click', openVerbList);
 $('verbListClose').addEventListener('click', closeVerbList);
+$('verbListSearch').addEventListener('input', e => filterVerbList(e.target.value));
 $('verblist-modal').addEventListener('click', e => {
   if (e.target === $('verblist-modal')) closeVerbList();
 });

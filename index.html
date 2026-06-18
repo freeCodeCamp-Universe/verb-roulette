@@ -22,59 +22,62 @@
 <h1>Verb Roulette</h1>
 <p class="subtitle">spin · memorise · type all 3 forms</p>
 
-<div class="stats">
-  <div class="stat">
-    <div class="stat-val" id="sScore">0</div>
-    <div class="stat-lbl">Score</div>
-  </div>
-  <div class="stat">
-    <div class="stat-val" id="sStreak">0</div>
-    <div class="stat-lbl">Streak</div>
-  </div>
-  <div class="stat">
-    <div class="stat-val" id="sRound">0</div>
-    <div class="stat-lbl">Round</div>
-  </div>
-</div>
-
-<div class="wheel-area">
-  <div class="wheel-wrapper">
-    <div class="pointer"></div>
-    <svg id="wheel-svg" viewBox="0 0 300 300" width="300" height="300">
-      <g id="wheel-group"></g>
-    </svg>
-  </div>
-  <div class="time-picker" id="timePicker">
-    <button class="time-opt active" data-val="10">10s</button>
-    <button class="time-opt"        data-val="30">30s</button>
-    <button class="time-opt"        data-val="60">60s</button>
-    <button class="time-opt"        data-val="0">∞</button>
-  </div>
-  <div id="langPicker">
-    <div class="time-picker">
-      <span class="lang-group-label">germanic:</span>
-      <button class="time-opt active" data-lang="en">🇺🇸 EN</button>
-      <button class="time-opt"        data-lang="de">🇩🇪 DE</button>
-      <button class="time-opt"        data-lang="nl">🇳🇱 NL</button>
-      <button class="time-opt"        data-lang="sv">🇸🇪 SV</button>
-      <button class="time-opt"        data-lang="da">🇩🇰 DA</button>
-      <button class="time-opt"        data-lang="is">🇮🇸 IS</button>
-      <button class="time-opt"        data-lang="no">🇳🇴 NO</button>
-    </div>
-    <div class="time-picker">
-      <span class="lang-group-label">romance:</span>
-      <button class="time-opt" data-lang="fr">🇫🇷 FR</button>
-      <button class="time-opt" data-lang="es">🇪🇸 ES</button>
-      <button class="time-opt" data-lang="pt">🇧🇷 PT</button>
-      <button class="time-opt" data-lang="it">🇮🇹 IT</button>
-    </div>
-  </div>
-  <button class="btn-spin" id="spinBtn">SPIN</button>
-</div>
-
 <div class="btn-group">
   <button class="btn-theory" id="theoryBtn">Grammar Reference</button>
   <button class="btn-theory" id="verbListBtn">Verb List</button>
+</div>
+
+<div class="two-col">
+  <div class="col-wheel">
+    <div class="wheel-wrapper">
+      <div class="pointer"></div>
+      <svg id="wheel-svg" viewBox="0 0 300 300" width="300" height="300">
+        <g id="wheel-group"></g>
+      </svg>
+    </div>
+  </div>
+  <div class="col-controls">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val" id="sScore">0</div>
+        <div class="stat-lbl">Score</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="sStreak">0</div>
+        <div class="stat-lbl">Streak</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="sRound">0</div>
+        <div class="stat-lbl">Round</div>
+      </div>
+    </div>
+    <div class="time-picker" id="timePicker">
+      <button class="time-opt active" data-val="10">10s</button>
+      <button class="time-opt"        data-val="30">30s</button>
+      <button class="time-opt"        data-val="60">60s</button>
+      <button class="time-opt"        data-val="0">no timer</button>
+    </div>
+    <div id="langPicker">
+      <div class="time-picker">
+        <span class="lang-group-label">germanic:</span>
+        <button class="time-opt active" data-lang="en">🇺🇸 EN</button>
+        <button class="time-opt"        data-lang="de">🇩🇪 DE</button>
+        <button class="time-opt"        data-lang="nl">🇳🇱 NL</button>
+        <button class="time-opt"        data-lang="sv">🇸🇪 SV</button>
+        <button class="time-opt"        data-lang="da">🇩🇰 DA</button>
+        <button class="time-opt"        data-lang="is">🇮🇸 IS</button>
+        <button class="time-opt"        data-lang="no">🇳🇴 NO</button>
+      </div>
+      <div class="time-picker">
+        <span class="lang-group-label">romance:</span>
+        <button class="time-opt" data-lang="fr">🇫🇷 FR</button>
+        <button class="time-opt" data-lang="es">🇪🇸 ES</button>
+        <button class="time-opt" data-lang="pt">🇧🇷 PT</button>
+        <button class="time-opt" data-lang="it">🇮🇹 IT</button>
+      </div>
+    </div>
+    <button class="btn-spin" id="spinBtn">SPIN</button>
+  </div>
 </div>
 
 <div id="verblist-modal">
@@ -82,6 +85,9 @@
     <div class="theory-header">
       <span class="theory-header-title" id="verbListTitle">Verb List</span>
       <button class="theory-close" id="verbListClose" aria-label="Close">✕</button>
+    </div>
+    <div class="verblist-search">
+      <input type="search" id="verbListSearch" placeholder="Search…" autocomplete="off" spellcheck="false" />
     </div>
     <div class="verblist-scroll">
       <table class="verblist-table" id="verbListTable"></table>
