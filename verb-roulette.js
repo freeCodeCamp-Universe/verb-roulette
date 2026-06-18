@@ -437,6 +437,7 @@ function checkAnswer(timeUp = false) {
   if (totalScore > personalBest) {
     personalBest = totalScore;
     localStorage.setItem(`verb-roulette-best-${currentLang}`, personalBest);
+    $('resetBestBtn').style.display = '';
   }
 
   $('sScore').textContent = totalScore;
@@ -578,6 +579,7 @@ function exitRetryMode() {
 function loadBest(code) {
   personalBest = parseInt(localStorage.getItem(`verb-roulette-best-${code}`) || '0');
   $('sBest').textContent = personalBest || '0';
+  $('resetBestBtn').style.display = personalBest > 0 ? '' : 'none';
 }
 
 function switchLanguage(code) {
@@ -644,6 +646,31 @@ document.querySelectorAll('#timePicker .time-opt').forEach(btn => {
 
 // ── Events ───────────────────────────────────────────────────
 $('spinBtn').addEventListener('click', spin);
+
+// ── Reset best modal ──────────────────────────────────────────
+function openResetBestModal() {
+  $('reset-best-modal').classList.add('visible');
+  modalOpen($('reset-best-modal'), $('resetBestBtn'), closeResetBestModal, $('resetBestCancel'));
+}
+function closeResetBestModal() {
+  $('reset-best-modal').classList.remove('visible');
+  modalDone($('reset-best-modal'));
+}
+
+$('resetBestBtn').addEventListener('click', openResetBestModal);
+$('resetBestCancel').addEventListener('click', closeResetBestModal);
+$('resetBestModalClose').addEventListener('click', closeResetBestModal);
+$('reset-best-modal').addEventListener('click', e => {
+  if (e.target === $('reset-best-modal')) closeResetBestModal();
+});
+$('resetBestConfirm').addEventListener('click', () => {
+  personalBest = 0;
+  localStorage.removeItem(`verb-roulette-best-${currentLang}`);
+  $('sBest').textContent = '0';
+  $('resetBestBtn').style.display = 'none';
+  closeResetBestModal();
+});
+
 $('retryBtn').addEventListener('click', () => {
   if (state !== 'idle') return;
   retryMode ? exitRetryMode() : enterRetryMode();
@@ -793,7 +820,8 @@ document.addEventListener('keydown', e => {
 
   if ($('verblist-modal').classList.contains('visible') ||
       $('theory-modal').classList.contains('visible') ||
-      $('shortcuts-modal').classList.contains('visible')) return;
+      $('shortcuts-modal').classList.contains('visible') ||
+      $('reset-best-modal').classList.contains('visible')) return;
 
   if (e.key === ' ' && !inInput) {
     e.preventDefault();

@@ -55,7 +55,7 @@
       </div>
       <div class="stat">
         <div class="stat-val" id="sBest">0</div>
-        <div class="stat-lbl">Best</div>
+        <div class="stat-lbl">Best <button class="btn-reset-best" id="resetBestBtn" aria-label="Reset best score" style="display:none">↺</button></div>
       </div>
     </div>
     <fieldset class="picker-fieldset">
@@ -130,6 +130,20 @@
       <div class="shortcut-row"><dt><kbd>Space</kbd></dt><dd>Spin / Next</dd></div>
       <div class="shortcut-row"><dt><kbd>Esc</kbd></dt><dd>Close panel / challenge</dd></div>
     </dl>
+  </div>
+</div>
+
+<div id="reset-best-modal" role="dialog" aria-modal="true" aria-labelledby="resetBestTitle">
+  <div class="theory-box confirm-box">
+    <div class="theory-header">
+      <span class="theory-header-title" id="resetBestTitle">Reset Best Score</span>
+      <button class="theory-close" id="resetBestModalClose" aria-label="Close">✕</button>
+    </div>
+    <p class="confirm-msg">Are you sure you want to reset your best score? This cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="btn-confirm-cancel" id="resetBestCancel">Cancel</button>
+      <button class="btn-confirm-ok" id="resetBestConfirm">Reset</button>
+    </div>
   </div>
 </div>
 
