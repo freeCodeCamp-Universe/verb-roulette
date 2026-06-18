@@ -212,6 +212,7 @@ let state           = 'idle';
 let currentVerb     = null;
 let totalScore      = 0;
 let streak          = 0;
+let personalBest    = 0;
 let round           = 0;
 let timeLeft        = 0;
 let timerInterval   = null;
@@ -221,6 +222,8 @@ let currentRotation = 0;
 const $ = id => document.getElementById(id);
 
 function norm(s) { return s.trim().toLowerCase(); }
+function formStr(form)       { return Array.isArray(form) ? form.join(' / ') : form; }
+function checkForm(val, form) { return Array.isArray(form) ? form.some(f => norm(f) === val) : norm(form) === val; }
 
 function sectorPath(cx, cy, r, startDeg, endDeg) {
   const s = startDeg * Math.PI / 180;
@@ -399,8 +402,8 @@ function checkAnswer(timeUp = false) {
   const ppVal   = norm($('pp-input').value);
 
   const infOk  = true;
-  const pastOk = pastVal === norm(currentVerb.past);
-  const ppOk   = ppVal   === norm(currentVerb.pp);
+  const pastOk = checkForm(pastVal, currentVerb.past);
+  const ppOk   = checkForm(ppVal,   currentVerb.pp);
 
   $('inf-input').className  = 'verb-input correct';
   $('past-input').className = 'verb-input ' + (pastOk ? 'correct' : 'wrong');
@@ -408,13 +411,13 @@ function checkAnswer(timeUp = false) {
   $('inf-input').setAttribute('aria-invalid',  'false');
   $('past-input').setAttribute('aria-invalid', pastOk ? 'false' : 'true');
   $('pp-input').setAttribute('aria-invalid',   ppOk   ? 'false' : 'true');
-  $('past-error').textContent = pastOk ? '' : `Correct: ${currentVerb.past}`;
-  $('pp-error').textContent   = ppOk   ? '' : `Correct: ${currentVerb.pp}`;
+  $('past-error').textContent = pastOk ? '' : `Correct: ${formStr(currentVerb.past)}`;
+  $('pp-error').textContent   = ppOk   ? '' : `Correct: ${formStr(currentVerb.pp)}`;
 
 
   $('ans-inf').textContent   = currentVerb.inf;
-  $('ans-past').textContent  = currentVerb.past;
-  $('ans-pp').textContent    = currentVerb.pp;
+  $('ans-past').textContent  = formStr(currentVerb.past);
+  $('ans-pp').textContent    = formStr(currentVerb.pp);
   $('answer-line').className = 'show';
 
   const correct  = [infOk, pastOk, ppOk].filter(Boolean).length;
@@ -427,10 +430,14 @@ function checkAnswer(timeUp = false) {
 
   const streakBonus = allOk && streak > 1 ? (streak - 1) * 50 : 0;
   const roundTotal  = pts + streakBonus;
-  totalScore       += roundTotal;
+  totalScore += roundTotal;
+  if (totalScore > personalBest) {
+    personalBest = totalScore;
+    localStorage.setItem(`verb-roulette-best-${currentLang}`, personalBest);
+  }
 
-  $('sScore').textContent  = totalScore;
-  $('sStreak').textContent = streak;
+  $('sScore').textContent = totalScore;
+  $('sBest').textContent  = personalBest;
 
   if (timeUp) SFX.timeup();
   else if (allOk) streak > 1 ? SFX.streak() : SFX.perfect();
@@ -520,6 +527,11 @@ function renderTheory() {
   `).join('');
 }
 
+function loadBest(code) {
+  personalBest = parseInt(localStorage.getItem(`verb-roulette-best-${code}`) || '0');
+  $('sBest').textContent = personalBest || '0';
+}
+
 function switchLanguage(code) {
   if (code === currentLang) return;
   clearInterval(timerInterval);
@@ -535,7 +547,8 @@ function switchLanguage(code) {
 
   state = 'idle';
   totalScore = streak = round = 0;
-  $('sScore').textContent = $('sStreak').textContent = $('sRound').textContent = '0';
+  $('sScore').textContent = $('sRound').textContent = '0';
+  loadBest(code);
   $('spinBtn').disabled   = false;
   $('checkBtn').style.display = 'block';
   $('nextBtn').style.display  = 'none';
@@ -593,7 +606,7 @@ let _vlIs3sg  = false;
 
 function _vlRows(verbs) {
   return verbs.map(v => `<tr>
-    <td>${v.inf}</td><td>${v.past}</td><td>${v.pp}</td>
+    <td>${v.inf}</td><td>${formStr(v.past)}</td><td>${formStr(v.pp)}</td>
     ${_vlShowTr ? `<td class="vl-tr">${v.tr || ''}</td>` : ''}
   </tr>`).join('');
 }
@@ -622,8 +635,8 @@ function filterVerbList(query) {
   const hits = q
     ? _vlSorted.filter(v =>
         v.inf.toLowerCase().includes(q) ||
-        v.past.toLowerCase().includes(q) ||
-        v.pp.toLowerCase().includes(q) ||
+        formStr(v.past).toLowerCase().includes(q) ||
+        formStr(v.pp).toLowerCase().includes(q) ||
         (_vlShowTr && (v.tr || '').toLowerCase().includes(q))
       )
     : _vlSorted;
@@ -758,6 +771,7 @@ document.addEventListener('keydown', e => {
   }
 })();
 
+loadBest(currentLang);
 updateLabels();
 renderTheory();
 pickWheelVerbs();
